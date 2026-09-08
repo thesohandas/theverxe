@@ -1771,6 +1771,14 @@
               body: JSON.stringify(payload),
             });
 
+            if (!response.ok) {
+              const message = (await response.text()).trim();
+              feedback.textContent =
+                message || "Could not send your details. Please try again.";
+              feedback.className = "form-feedback error";
+              return;
+            }
+
             feedback.textContent = `Thanks ${name}! I'll reach out soon.`;
             feedback.className = "form-feedback";
             setTimeout(() => {
