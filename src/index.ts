@@ -1,7 +1,7 @@
 import { Hono } from "hono"
 import { serveStatic } from "hono/bun"
 import { validator } from "hono/validator"
-import { contactSchema } from "@/schemas"
+import { contactSchema } from "../schemas"
 import { getENV } from "./env"
 
 const app = new Hono()
