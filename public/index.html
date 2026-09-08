@@ -805,23 +805,23 @@
         </svg>
         <span class="glow-text" data-text="Your number is safe — only I can see it.">Your number is safe — only I can see it.</span>
       </div>
-      <div id="formContainer" class="form-container">
+      <form id="formContainer" class="form-container">
         <label for="nameInput">Your Name</label>
-        <input type="text" id="nameInput" placeholder="e.g. Lisa" />
+        <input type="text" id="nameInput" name="name" placeholder="e.g. Lisa" required />
         <label for="phoneInput">Phone Number</label>
-        <input type="tel" id="phoneInput" placeholder="+91 999 999 999" />
+        <input type="tel" id="phoneInput" name="phone" placeholder="+91 999 999 999" required />
 
         <!-- optional message with 150 char limit -->
         <label for="messageInput">Wanna tell me something? (optional)</label>
-        <textarea id="messageInput" rows="2" placeholder="Say anything ..." maxlength="150"></textarea>
+        <textarea id="messageInput" name="message" rows="2" placeholder="Say anything ..." maxlength="150"></textarea>
         <div id="charCounter" class="char-counter">0 / 150</div>
 
         <div class="btn-group">
-          <button class="btn-primary" id="submitBtn">Send</button>
-          <button class="btn-secondary" id="cancelBtn">Cancel</button>
+          <button type="submit" class="btn-primary" id="submitBtn">Send</button>
+          <button type="button" class="btn-secondary" id="cancelBtn">Cancel</button>
         </div>
         <div id="feedback" class="form-feedback"></div>
-      </div>
+      </form>
     </div>
   </div>
 
@@ -1140,6 +1140,7 @@
       const trigger = document.getElementById('triggerBtn');
       const overlay = document.getElementById('overlay');
       const closeBtn = document.getElementById('closeBtn');
+      const form = document.getElementById('formContainer');
       const nameInput = document.getElementById('nameInput');
       const phoneInput = document.getElementById('phoneInput');
       const messageInput = document.getElementById('messageInput');
@@ -1192,7 +1193,10 @@
       });
       cancelBtn.addEventListener('click', closeOverlay);
 
-      submitBtn.addEventListener('click', function() {
+      form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        if (submitBtn.disabled) return;
+
         const name = nameInput.value.trim();
         const phone = phoneInput.value.trim();
         const message = messageInput.value.trim();
@@ -1207,26 +1211,47 @@
           feedback.className = 'form-feedback error';
           return;
         }
-        const finalMessage = message.slice(0, 150);
+        const payload = {
+          name: name,
+          phone: phone,
+          message: message.slice(0, 150)
+        };
+
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<span class="spinner"></span> Sending...';
-        setTimeout(function() {
-          let feedbackMsg = '✓ Thanks ' + name + '! I\'ll reach out to ' + phone + '.';
-          if (finalMessage) {
-            feedbackMsg += ' (message: "' + finalMessage + '")';
+
+        try {
+          const response = await fetch('/api/contact', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          if (!response.ok) {
+            throw new Error('Request failed with status ' + response.status);
           }
-          feedback.textContent = feedbackMsg;
+
+          feedback.textContent = 'Thanks ' + name + '! I\'ll reach out soon.';
           feedback.className = 'form-feedback';
           setTimeout(function() { closeOverlay(); }, 2400);
-        }, 1000);
+        } catch (error) {
+          feedback.textContent = 'Could not send your details. Please try again.';
+          feedback.className = 'form-feedback error';
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = 'Send';
+        }
       });
 
       [nameInput, phoneInput, messageInput].forEach(function(inp) {
         inp.addEventListener('keydown', function(e) {
-          if (e.key === 'Enter' && inp !== messageInput) submitBtn.click();
+          if (e.key === 'Enter' && inp !== messageInput) {
+            e.preventDefault();
+            form.requestSubmit();
+          }
           if (inp === messageInput && e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
             e.preventDefault();
-            submitBtn.click();
+            form.requestSubmit();
           }
         });
       });
