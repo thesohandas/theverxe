@@ -12,6 +12,7 @@ node_modules
 out
 dist
 *.tgz
+.vercel
 
 # code coverage
 coverage
