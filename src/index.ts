@@ -5,7 +5,54 @@ import { contactSchema } from "../schemas"
 import { getENV } from "./env"
 
 const app = new Hono()
+
 app.get("/", serveStatic({ path: "./public/index.html" }))
+
+const noStore = { "Cache-Control": "no-store" } as const
+
+app.get("/api/health", (c) =>
+  c.json(
+    {
+      ok: true,
+      status: "healthy",
+      message: "Everything looks good. The service is up and responding.",
+      checkedAt: new Date().toISOString(),
+    },
+    200,
+    noStore,
+  ),
+)
+
+app.get("/api/contact", (c) => {
+  const envResult = getENV(c)
+
+  if (!envResult.success) {
+    console.error(envResult.error.observability)
+    return c.json(
+      {
+        ok: false,
+        status: "unavailable",
+        message:
+          "Thanks for checking in. The contact form is temporarily unavailable. Please try again shortly.",
+        checkedAt: new Date().toISOString(),
+      },
+      503,
+      noStore,
+    )
+  }
+
+  return c.json(
+    {
+      ok: true,
+      status: "ready",
+      message:
+        "Contact form is ready. Send a POST with name, phone, and message to reach me.",
+      checkedAt: new Date().toISOString(),
+    },
+    200,
+    noStore,
+  )
+})
 
 app.post(
   "/api/contact",
