@@ -443,9 +443,6 @@
         color: #dea88e;
         transition: color 0.3s;
       }
-      .terminal-prompt:hover .cmd-highlight {
-        color: #ff8ccd;
-      }
       .cursor-line {
         display: flex;
         align-items: center;
@@ -454,6 +451,9 @@
       }
       .cursor-line .cmd-highlight {
         position: relative;
+      }
+      .terminal-prompt:hover .cmd-highlight {
+        color: #ff8ccd;
       }
       .cursor-line .cmd-highlight::after {
         content: "";
