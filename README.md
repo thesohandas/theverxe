@@ -1,4 +1,4 @@
-# theverxe.com
+# [verxe.net](https://www.verxe.net)
 
 To install dependencies:
 
